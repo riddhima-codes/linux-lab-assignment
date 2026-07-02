@@ -1,4 +1,4 @@
-=== Question 4: Storage Health Assessment and Documentation ===
+=== Question 5: Storage Health Assessment and Documentation ===
 
 $ lsblk
 sda      8:0   0  100G  0 disk
