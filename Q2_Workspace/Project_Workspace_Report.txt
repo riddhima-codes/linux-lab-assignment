@@ -1,0 +1,39 @@
+=== Question 2: Secure Project Workspace Setup ===
+
+$ mkdir -p project_files/{docs,src,config}
+Observation: Created the project_files directory with three subdirectories (docs, src, config) in a single command using brace expansion.
+
+$ touch project_files/docs/notes.txt
+Observation: Created an empty file inside docs/ to test file permission changes.
+
+$ umask
+0022
+Observation: The umask value 0022 means new files/directories are created with permissions reduced by this mask — directories default to 755 (rwxr-xr-x) and files to 644 (rw-r--r--), removing write access for group and others.
+
+$ ls -la project_files (BEFORE)
+drwxr-xr-x 5 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 .
+drwxr-xr-x 2 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 config
+drwxr-xr-x 2 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 docs
+drwxr-xr-x 2 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 src
+Observation: By default, all directories were created with 755 permissions (owner: rwx, group: r-x, others: r-x), matching the umask calculation.
+
+$ chmod 750 project_files
+Observation: Restricted the project_files directory so others have no access at all — only the owner has full rwx and the group can read/execute.
+
+$ chmod 640 project_files/docs/notes.txt
+Observation: Restricted notes.txt so only the owner can read/write, the group can only read, and others have no access — protecting sensitive project data from unauthorized users.
+
+$ ls -la project_files (AFTER)
+drwxr-x--- 5 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 .
+Observation: Confirms project_files now has 750 permissions — the "others" access is fully removed compared to the original 755.
+
+$ ls -la project_files/docs
+drwxr-xr-x 2 riddhimaagrz riddhimaagrz 4096 Jul 2 06:37 .
+-rw-r----- 1 riddhimaagrz riddhimaagrz 0 Jul 2 06:37 notes.txt
+Observation: Confirms notes.txt now has 640 permissions as intended.
+
+=== Ownership Details ===
+All files and directories are owned by user riddhimaagrz and group riddhimaagrz (the default owner/group for files created by this user).
+
+=== How Permissions Protect Project Data ===
+By removing "others" permissions entirely (750 for directories, 640 for files), only the file owner and members of the assigned group can access project files. This prevents unauthorized users on the same system from reading or modifying sensitive project documentation, source code, or configuration files — an important security practice for shared multi-user environments.
