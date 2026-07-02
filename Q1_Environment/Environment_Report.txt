@@ -1,0 +1,39 @@
+=== Question 1: Linux Environment Verification ===
+
+$ whoami
+riddhimaagrz
+Observation: Displays the currently logged-in username. Confirms I'm operating as user riddhimaagrz on the Cloud Shell VM.
+
+$ id
+uid=1000(riddhimaagrz) gid=1000(riddhimaagrz) groups=1000(riddhimaagrz),4(adm),27(sudo),996(docker)
+Observation: Shows my user ID, primary group ID, and all groups I belong to. I'm part of adm, sudo, and docker groups, meaning I have elevated admin privileges and container access.
+
+$ groups
+riddhimaagrz adm sudo docker
+Observation: Confirms the same group memberships in a simpler format — useful for quickly checking access rights before working with system resources.
+
+$ echo $SHELL
+/bin/bash
+Observation: Shows my default login shell is Bash, which determines command syntax and scripting behavior.
+
+$ pwd
+/home/riddhimaagrz/linux-lab-assignment/Q1_Environment
+Observation: Confirms my current working directory, verifying I'm inside the correct project folder before running further commands.
+
+$ ls -la
+total 8
+drwxr-xr-x 2 riddhimaagrz riddhimaagrz 4096 Jul 2 06:22 .
+drwxr-xr-x 8 riddhimaagrz riddhimaagrz 4096 Jul 2 05:55 ..
+Observation: Lists all files/directories including hidden ones. At this point in the run the folder was clean before the report and screenshot files were added.
+
+$ ping -c 4 google.com
+PING google.com (142.251.12.138) 56(84) bytes of data.
+64 bytes from se-in-f138.1e100.net (142.251.12.138): icmp_seq=1 ttl=114 time=0.774 ms
+64 bytes from se-in-f138.1e100.net (142.251.12.138): icmp_seq=2 ttl=114 time=0.429 ms
+64 bytes from se-in-f138.1e100.net (142.251.12.138): icmp_seq=3 ttl=114 time=0.312 ms
+64 bytes from se-in-f138.1e100.net (142.251.12.138): icmp_seq=4 ttl=114 time=0.481 ms
+
+--- google.com ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3055ms
+rtt min/avg/max/mdev = 0.312/0.499/0.774/0.170 ms
+Observation: Confirms network connectivity is working correctly — all 4 packets were received with 0% packet loss and low latency (~0.5ms average).
