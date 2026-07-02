@@ -1,0 +1,47 @@
+=== Question 4: Storage Health Assessment and Documentation ===
+
+$ lsblk
+sda      8:0   0  100G  0 disk
+├─sda1   8:1   0  95.8G 0 part /
+├─sda2-12  (various small partitions - boot, EFI, config)
+sdb      8:16  0   32M  0 disk
+└─sdb1   8:17  0    5G  0 part /home
+
+Observation: The system has two block devices — sda (100G) is the primary disk containing the root filesystem on sda1 (95.8G), plus several small system partitions (boot, config, EFI). sdb is a separate 5G disk mounted at /home for user data.
+
+$ df -h
+Filesystem  Size  Used  Avail  Use%  Mounted on
+overlay     95G   45G   50G   48%   /
+tmpfs       64M   0     64M   0%    /dev
+/dev/sda1   95G   45G   50G   48%   /root
+/dev/disk.. 4.8G  129M  4.4G  3%    /home
+shm         64M   0     64M   0%    /dev/shm
+
+Observation: The root filesystem (/) is 95G total with 48% used (45G used, 50G available) — healthy, well under capacity. The /home filesystem is much smaller (4.8G) with only 3% used, plenty of headroom for user files.
+
+$ du -sh ~
+29M   /home/riddhimaagrz
+
+Observation: My home directory currently uses only 29M of the available 4.8G on /home, confirming minimal disk footprint from the lab work done so far.
+
+$ df -i
+Filesystem  Inodes    IUsed   IFree     IUse%  Mounted on
+overlay     6258720   876420  5382300   15%    /
+tmpfs       1017262   169     1017093   1%     /dev
+/dev/sda1   6258720   876420  5382300   15%    /root
+/dev/disk.. 327680    997     326683    1%     /home
+shm         1017262   1       1017261   1%     /dev/shm
+
+Observation: Inode usage is low across all filesystems (15% on root, 1% on /home), meaning there's no risk of running out of inodes even though disk space usage on root is moderate (48%). This confirms the server isn't storing an excessive number of small files.
+
+=== Storage Health Observations ===
+- Root filesystem: 48% used, healthy — no immediate action needed but should be monitored as it approaches 70-80%.
+- Home filesystem: only 3% used, very healthy with significant headroom.
+- Inode usage is low everywhere (under 15%), so there's no risk of inode exhaustion in the near term.
+- No filesystem is near capacity; the server has adequate storage for a new application deployment.
+
+=== Recommendations for Improving Storage Utilization ===
+1. Set up automated disk usage monitoring/alerts (e.g., at 80% threshold) on the root filesystem before deploying the new application server, since application logs and data can grow quickly.
+2. Periodically clean up Docker images/containers on /var/lib/docker if unused, since it resides on the root partition and could consume significant space over time.
+3. Consider mounting application data/logs on a separate partition (like /home or a new volume) rather than root, to isolate application storage growth from the OS partition.
+4. Schedule regular log rotation to prevent unbounded log file growth from affecting available disk space.
