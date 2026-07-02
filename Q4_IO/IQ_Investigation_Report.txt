@@ -1,0 +1,47 @@
+=== Question 4: File Access and I/O Investigation ===
+
+$ echo "test log data" > testfile.txt
+Observation: Created testfile.txt containing sample log data to use for I/O testing.
+
+$ ls > output.txt
+Observation: Redirected standard output (stdout, file descriptor 1) of the ls command into output.txt instead of printing to the terminal.
+
+$ ls /nonexistent_folder 2> error.txt
+Observation: Attempted to list a folder that doesn't exist. Since it failed, the error message was redirected to error.txt using file descriptor 2 (stderr), rather than being shown on screen.
+
+$ cat output.txt
+output.txt
+testfile.txt
+Observation: Confirms stdout was correctly captured — output.txt lists the files present at the time ls ran.
+
+$ cat error.txt
+ls: cannot access '/nonexistent_folder': No such file or directory
+Observation: Confirms stderr was correctly redirected separately from stdout, proving Linux treats standard output and standard error as two independent streams (file descriptors 1 and 2) that can be redirected independently.
+
+$ echo $$
+4195
+Observation: Displays the process ID (PID) of the current shell session, needed to inspect its open file descriptors via /proc.
+
+$ ls -l /proc/$$/fd
+total 0
+lrwx------ 1 riddhimaagrz riddhimaagrz 64 Jul 2 07:22 0 -> /dev/pts/6
+lrwx------ 1 riddhimaagrz riddhimaagrz 64 Jul 2 07:22 1 -> /dev/pts/6
+lrwx------ 1 riddhimaagrz riddhimaagrz 64 Jul 2 07:22 2 -> /dev/pts/6
+lrwx------ 1 riddhimaagrz riddhimaagrz 64 Jul 2 07:22 255 -> /dev/pts/6
+Observation: Lists all file descriptors currently open by the shell process. Descriptors 0 (stdin), 1 (stdout), and 2 (stderr) all point to the same pseudo-terminal device (/dev/pts/6), confirming that by default, a shell's input/output/error streams are all connected to the terminal itself unless explicitly redirected. Descriptor 255 is used internally by bash.
+
+$ ulimit -a
+open files (-n) 1048576
+max user processes (-u) unlimited
+file size (blocks, -f) unlimited
+stack size (kbytes, -s) 8192
+core file size (blocks, -c) unlimited
+cpu time (seconds, -t) unlimited
+...
+Observation: Shows resource limits for the current shell session. "Open files" is capped at 1,048,576 file descriptors per process, and stack size is limited to 8192 KB, while several other limits (CPU time, virtual memory, file size, core dump size) are unlimited in this environment.
+
+=== File Descriptor Observations ===
+Every process starts with standard file descriptors: 0 (stdin), 1 (stdout), and 2 (stderr), all initially pointing to the terminal device. Redirection operators (>, 2>) let a program reroute these streams independently to files instead — redirecting stdout to output.txt did not affect where stderr was written, demonstrating that I/O redirection operates per-descriptor rather than as one combined stream.
+
+=== Explanation: How Linux Manages File I/O ===
+Linux follows the "everything is a file" philosophy — regular files, devices, pipes, and even terminals are all accessed through file descriptors. The kernel maintains a per-process file descriptor table mapping small integers to actual open files/devices. Resource limits (ulimit) cap how many descriptors a single process can hold open simultaneously, preventing any one process from exhausting system-wide file handles. Shell redirection operators (>, >>, 2>, 2>&1) work by reassigning which underlying file or device a descriptor points to, without requiring any change to how the program itself reads or writes data through that descriptor.
